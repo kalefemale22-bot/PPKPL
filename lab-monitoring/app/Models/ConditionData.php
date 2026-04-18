@@ -42,7 +42,7 @@ class ConditionData extends Model
     /**
      * Data kondisi dapat memiliki satu tiket insiden (jika Level 2 / Kritis).
      */
-    public function incidentTicket(): HasOne
+    public function incidentTicket()
     {
         return $this->hasOne(IncidentTicket::class, 'condition_data_id');
     }

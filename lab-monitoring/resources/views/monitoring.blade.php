@@ -612,9 +612,12 @@
                             day: '2-digit', month: 'short', year: 'numeric',
                             hour: '2-digit', minute: '2-digit'
                         });
-                        const actionBtn = color !== 'green' 
-                        ? `<a href="/monitoring/incidents/${item.id}" style="text-decoration:none; font-size:11px; color:var(--color-primary); font-weight:600; margin-top:8px; display:block;">➔ LIHAT TIKET</a>` 
-                        : '';
+                        const actionBtn = (color !== 'green' && item.incident_ticket)
+? `<a href="/monitoring/incidents/${item.incident_ticket.id}" 
+     style="text-decoration:none; font-size:11px; color:var(--color-primary); font-weight:600; margin-top:8px; display:block;">
+     ➔ LIHAT TIKET
+   </a>` 
+: '';
                         const el = document.createElement('div');
                         el.className = 'history-item';
                         el.innerHTML = `

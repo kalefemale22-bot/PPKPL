@@ -41,7 +41,7 @@ return new class extends Migration
                 ->comment('Level 1: Peringatan (kuning), Level 2: Kritis (merah)');
 
             // Status penanganan tiket
-            $table->enum('status', ['open', 'closed'])
+            $table->enum('status', ['open', 'dalam_penanganan', 'closed'])
                 ->default('open')
                 ->comment('open: belum ditangani, closed: sudah diselesaikan');
 

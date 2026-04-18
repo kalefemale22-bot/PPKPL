@@ -143,6 +143,35 @@
 
             {{-- LOGIKA 1: TAMPILAN DETAIL (INPUT TINDAKAN) --}}
             @if(isset($ticket))
+            <div style="margin-bottom: 15px;">
+    @if($ticket->status == 'open')
+        <button onclick="closeTicket({{ $ticket->id }})"
+            style="background-color: #16a34a; color: white; padding: 10px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">
+            ✅ Selesaikan Insiden
+        </button>
+    @else
+        <span style="color: #16a34a; font-weight: bold;">
+            ✔ Tiket sudah ditutup
+        </span>
+    @endif
+</div>
+            <div style="margin-top: 20px; margin-bottom: 20px;">
+    @if(strtolower($ticket->status) == 'closed' || strtolower($ticket->status) == 'tertutup')
+        <a href="{{ route('incidents.export-pdf', ['id' => $ticket->id]) }}"
+           style="background-color: #2563eb; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold; font-family: sans-serif;">
+            📄 Ekspor PDF
+        </a>
+    @else
+        <button disabled 
+                style="background-color: #9ca3af; color: white; padding: 10px 15px; border: none; border-radius: 5px; font-weight: bold; font-family: sans-serif; cursor: not-allowed;"
+                title="Laporan hanya dapat diekspor setelah tiket insiden ditutup.">
+            🔒 Ekspor PDF (Terkunci)
+        </button>
+        <span style="color: #ef4444; font-size: 14px; margin-left: 10px;">
+            * Laporan hanya dapat diekspor setelah tiket insiden ditutup.
+        </span>
+    @endif
+</div>
                 <div class="two-col">
                     <div>
                         <div class="card">
@@ -160,8 +189,9 @@
                                 </p>
                             </div>
                         </div>
+                                                
 
-                        @if($ticket->status != 'closed')
+                        @if(strtolower($ticket->status) !== 'closed')
                         <div class="card">
                             <div class="card-header">Catat Tindakan Korektif</div>
                             <div class="card-body">
@@ -169,7 +199,7 @@
                                 <textarea id="desc" class="form-control" rows="5" placeholder="Jelaskan tindakan perbaikan..."></textarea>
                                 <p id="err-msg" style="color:red; font-size:12px; display:none; margin-top:6px;">Deskripsi wajib diisi.</p>
                                 
-                                <button onclick="saveAction({{ $ticket->id }})" id="btn-save" class="btn-submit" style="margin-top:14px;">
+                                <button type="button" onclick="saveAction({{ $ticket->id }}, event)" id="btn-save" class="btn-submit" style="margin-top:14px;">
                                     <span id="btn-text">Simpan Tindakan</span>
                                     <div class="spinner" id="btn-spinner"></div>
                                 </button>
@@ -204,7 +234,7 @@
                                 <div style="flex:1">
                                     <div style="font-weight:600; font-size:14px; color:var(--color-text);">Tiket #{{ $t->id }} - {{ $t->conditionData->room->room_name ?? 'N/A' }}</div>
                                     <div style="font-size:12px; color:var(--color-text-muted); margin-top:4px;">Dilaporkan oleh: {{ $t->creator->name ?? 'System' }} · {{ $t->created_at->format('d M Y H:i') }}</div>
-                                    <a href="/monitoring/incidents/{{ $t->condition_data_id }}" style="display:inline-block; color:var(--color-primary); font-size:12px; font-weight:600; margin-top:8px; text-decoration:none;">➔ LIHAT DETAIL PENANGANAN</a>
+                                    <a href="/monitoring/incidents/{{ $t->id }}" style="display:inline-block; color:var(--color-primary); font-size:12px; font-weight:600; margin-top:8px; text-decoration:none;">➔ LIHAT DETAIL PENANGANAN</a>
                                 </div>
                                 <div style="text-align: right;">
                                     <span class="status-badge badge-{{ $t->status }}">{{ $t->status }}</span>
@@ -225,6 +255,7 @@
 
     <script>
         async function saveAction(id) {
+            console.log("FUNCTION KEJALAN");
             const descInput = document.getElementById('desc');
             const err = document.getElementById('err-msg');
             const btn = document.getElementById('btn-save');
@@ -288,6 +319,28 @@
                 location.reload();
             }
         }
+function closeTicket(id) {
+    if (!confirm('Yakin ingin menutup tiket ini?')) return;
+
+    fetch(`/api/incident-tickets/${id}/close`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Tiket berhasil ditutup');
+            location.reload(); // refresh supaya tombol PDF aktif
+        } else {
+            alert('Gagal menutup tiket');
+        }
+    })
+    .catch(() => alert('Error koneksi'));
+}
+</script>
     </script>
 </body>
 </html>
