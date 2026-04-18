@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class ConditionData extends Model
 {
@@ -18,8 +19,12 @@ class ConditionData extends Model
         'indicator_color',
     ];
 
+    // -------------------------------------------------------------------------
+    // Relasi
+    // -------------------------------------------------------------------------
+
     /**
-     * Relasi ke StorageRoom
+     * Data kondisi milik satu ruang penyimpanan.
      */
     public function room(): BelongsTo
     {
@@ -27,10 +32,18 @@ class ConditionData extends Model
     }
 
     /**
-     * Relasi ke User pembuat
+     * Data kondisi diinput oleh satu pengguna.
      */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'inputted_by');
+    }
+
+    /**
+     * Data kondisi dapat memiliki satu tiket insiden (jika Level 2 / Kritis).
+     */
+    public function incidentTicket(): HasOne
+    {
+        return $this->hasOne(IncidentTicket::class, 'condition_data_id');
     }
 }

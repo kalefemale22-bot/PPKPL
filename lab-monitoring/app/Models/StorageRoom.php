@@ -16,11 +16,23 @@ class StorageRoom extends Model
         'humidity_limit',
     ];
 
+    // -------------------------------------------------------------------------
+    // Relasi
+    // -------------------------------------------------------------------------
+
     /**
-     * Relasi ke ConditionData (One-to-Many)
+     * Satu ruang penyimpanan memiliki banyak data kondisi.
      */
     public function conditionData(): HasMany
     {
         return $this->hasMany(ConditionData::class, 'storage_room_id');
+    }
+
+    /**
+     * Satu ruang penyimpanan dapat memiliki banyak tiket insiden.
+     */
+    public function incidentTickets(): HasMany
+    {
+        return $this->hasMany(IncidentTicket::class, 'storage_room_id');
     }
 }
