@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ConditionDataController;
 use App\Http\Controllers\StorageRoomController;
+use App\Http\Controllers\CorrectiveActionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,3 +27,6 @@ Route::post('/condition-data', [ConditionDataController::class, 'store']);
 
 // Endpoint sederhana untuk mengambil data ruang penyimpanan
 Route::get('/storage-rooms', [StorageRoomController::class, 'index']);
+
+Route::get('/incident-tickets/{id}/actions', [CorrectiveActionController::class, 'index']);
+Route::post('/incident-tickets/{id}/actions', [CorrectiveActionController::class, 'store']);
