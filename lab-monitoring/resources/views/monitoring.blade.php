@@ -349,6 +349,46 @@
             margin-bottom: 8px;
         }
         @keyframes shimmer { to { background-position: -200% 0; } }
+
+        /* ── Modal Notifikasi ── */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none; justify-content: center; align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(2px);
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-content {
+            background: var(--bg-card);
+            width: 450px; max-width: 90%;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-card-hover);
+            display: flex; flex-direction: column;
+            max-height: 80vh;
+        }
+        .modal-header {
+            padding: 16px 22px;
+            border-bottom: 1px solid var(--color-border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-title { font-size: 15px; font-weight: 600; color: var(--color-text); }
+        .btn-close {
+            background: none; border: none; font-size: 22px; cursor: pointer; color: var(--color-text-muted);
+            line-height: 1; padding: 0;
+        }
+        .btn-close:hover { color: var(--color-red); }
+        .modal-body {
+            padding: 0; overflow-y: auto; flex: 1;
+        }
+        .notif-item {
+            padding: 16px 22px; border-bottom: 1px solid var(--color-border);
+            transition: background 0.15s;
+        }
+        .notif-item:hover { background: #f8fafc; }
+        .notif-item:last-child { border-bottom: none; }
+        .notif-msg { font-size: 13.5px; color: var(--color-text); font-weight: 500; margin-bottom: 6px; line-height: 1.4; }
+        .notif-time { font-size: 11px; color: var(--color-text-muted); display: flex; align-items: center; gap: 4px; }
     </style>
 </head>
 <body>
@@ -504,6 +544,21 @@
                     </div>
                 </div>
 
+            </div>
+
+            <div class="modal-overlay" id="notif-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="modal-title">Notifikasi Sistem</div>
+                        <button class="btn-close" onclick="closeNotifModal()">&times;</button>
+                    </div>
+                    <div class="modal-body" id="notif-container">
+                        <div style="padding: 22px;">
+                            <div class="skeleton" style="width:100%"></div>
+                            <div class="skeleton" style="width:80%"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -672,6 +727,9 @@
                         showError('humidity', 'err-hum', true);
                         document.getElementById('err-hum').textContent = data.errors.humidity[0];
                     }
+                    if (data.errors.inputted_by) {
+                        showAlert('danger', 'Error Sistem: User tidak ditemukan (' + data.errors.inputted_by[0] + ')');
+                    }
                 } else {
                     showAlert('danger', 'Gagal menyimpan data: ' + (data.message || 'Terjadi kesalahan.'));
                 }
@@ -688,6 +746,72 @@
         // ── Init ──
         fetchRooms();
         fetchHistory();
+
+        // ── FITUR NOTIFIKASI ──
+        
+        // 1. Pilih elemen menu notifikasi (menu ke-2 di sidebar)
+        const notifMenu = document.querySelectorAll('.nav-item')[1]; 
+        const notifModal = document.getElementById('notif-modal');
+        const notifContainer = document.getElementById('notif-container');
+
+        // 2. Buka modal saat menu diklik
+        notifMenu.addEventListener('click', function(e) {
+            e.preventDefault();
+            notifModal.classList.add('show');
+            fetchNotifications(); // Ambil data saat modal dibuka
+        });
+
+        // 3. Fungsi tutup modal
+        function closeNotifModal() {
+            notifModal.classList.remove('show');
+        }
+
+        // 4. Tutup modal jika user mengklik area abu-abu di luar kotak
+        notifModal.addEventListener('click', function(e) {
+            if (e.target === notifModal) closeNotifModal();
+        });
+
+        // 5. Fetch API Notifikasi
+        async function fetchNotifications() {
+            notifContainer.innerHTML = '<div style="padding: 22px;"><div class="skeleton" style="width:100%"></div><div class="skeleton" style="width:80%"></div></div>';
+            
+            try {
+                const res = await fetch('/api/notifications');
+                const json = await res.json();
+                
+                if (json.status === 'success') {
+                    if (json.data.length === 0) {
+                        notifContainer.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>Belum ada notifikasi baru.</div>`;
+                        return;
+                    }
+                    
+                    notifContainer.innerHTML = '';
+                    json.data.forEach(item => {
+                        // Sesuaikan "item.message" dengan nama kolom teks di tabel notifications Anda.
+                        // Jika Anda menggunakan kolom "data", ganti menjadi item.data
+                        const pesan = item.message || item.data || "Peringatan deviasi suhu tercatat."; 
+                        
+                        const waktu = new Date(item.created_at).toLocaleString('id-ID', {
+                            day: '2-digit', month: 'short', year: 'numeric',
+                            hour: '2-digit', minute: '2-digit'
+                        });
+                        
+                        notifContainer.innerHTML += `
+                            <div class="notif-item">
+                                <div class="notif-msg">⚠️ ${pesan}</div>
+                                <div class="notif-time">
+                                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    ${waktu}
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            } catch (err) {
+                notifContainer.innerHTML = `<div class="empty-state" style="color: var(--color-red);">Gagal memuat notifikasi. Coba lagi nanti.</div>`;
+                console.error('Error fetching notifications:', err);
+            }
+        }
     </script>
 </body>
 </html>

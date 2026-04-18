@@ -92,7 +92,7 @@ class AlertService
         ]);
 
         // ── 4. Notifikasi in-app + Email → Semua Manajer Laboratorium ─────────
-        $managers = User::where('role', 'manager')->get();
+        $managers = User::where('role', 'admin')->get();
 
         if ($managers->isEmpty()) {
             Log::warning("[AlertService] Tidak ada pengguna dengan role 'manager' ditemukan. Email tidak dapat dikirim.");

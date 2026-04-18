@@ -26,3 +26,11 @@ Route::post('/condition-data', [ConditionDataController::class, 'store']);
 
 // Endpoint sederhana untuk mengambil data ruang penyimpanan
 Route::get('/storage-rooms', [StorageRoomController::class, 'index']);
+
+// Endpoint untuk mengambil daftar notifikasi
+Route::get('/notifications', function () {
+    return response()->json([
+        'status' => 'success',
+        'data' => \App\Models\Notification::latest()->get()
+    ]);
+});
