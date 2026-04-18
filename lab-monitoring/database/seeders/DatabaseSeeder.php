@@ -28,5 +28,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             StorageRoomSeeder::class,
         ]);
+
+        $this->call([
+            StorageRoomSeeder::class,
+        ]);
     }
 }

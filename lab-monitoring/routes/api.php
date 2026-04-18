@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ConditionDataController;
 use App\Http\Controllers\StorageRoomController;
+use App\Http\Controllers\CorrectiveActionController;
 
 /*
 |--------------------------------------------------------------------------
