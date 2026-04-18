@@ -77,16 +77,26 @@ Route::post('/api/condition-data', function (Request $request) {
     return response()->json(['status' => 'success', 'data' => $condition]);
 });
 
+// web.php
+
+// Cari bagian ini di web.php dan ganti total:
+
 Route::post('/api/incident-tickets/{id}/actions', function (Request $request, $id) {
+    // Validasi agar tidak menyimpan string kosong
+    if (!$request->description) {
+        return response()->json(['status' => 'error', 'message' => 'Deskripsi tidak boleh kosong'], 422);
+    }
+
     $ticket = IncidentTicket::findOrFail($id);
 
-
+    // 1. Simpan tindakan korektif
     $action = CorrectiveAction::create([
         'incident_ticket_id' => $id,
-        'description'        => $request->description,
-        'recorded_by'        => 1,
+        'description'        => $request->description, // Pastikan ini sesuai dengan JSON yang dikirim
+        'recorded_by'        => 1, // Pastikan ada user dengan ID 1 di tabel users Anda
     ]);
 
+    // 2. Ubah status hanya jika masih 'open'
     if ($ticket->status === 'open') {
         $ticket->update(['status' => 'dalam_penanganan']);
     }
@@ -94,6 +104,7 @@ Route::post('/api/incident-tickets/{id}/actions', function (Request $request, $i
     return response()->json(['status' => 'success', 'data' => $action]);
 });
 
+// Rute ini khusus digunakan saat user menekan tombol "Selesaikan Insiden"
 Route::post('/api/incident-tickets/{id}/close', function ($id) {
     $ticket = IncidentTicket::findOrFail($id);
 

@@ -140,76 +140,69 @@
         </header>
 
         <main class="page-content">
+    @if(isset($ticket))
+        {{-- Area Tombol Aksi --}}
+        <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+            
+            {{-- Tombol Selesaikan: Muncul jika belum closed --}}
+            @if($ticket->status !== 'closed')
+                <button onclick="closeTicket({{ $ticket->id }})"
+                    style="background-color: #16a34a; color: white; padding: 10px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">
+                    ✅ Selesaikan Insiden
+                </button>
+            @else
+                <span style="color: #16a34a; font-weight: bold;">
+                    ✔ Tiket sudah ditutup
+                </span>
+            @endif
 
-            {{-- LOGIKA 1: TAMPILAN DETAIL (INPUT TINDAKAN) --}}
-            @if(isset($ticket))
-            <div style="margin-bottom: 15px;">
-    @if($ticket->status == 'open')
-        <button onclick="closeTicket({{ $ticket->id }})"
-            style="background-color: #16a34a; color: white; padding: 10px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">
-            ✅ Selesaikan Insiden
-        </button>
-    @else
-        <span style="color: #16a34a; font-weight: bold;">
-            ✔ Tiket sudah ditutup
-        </span>
-    @endif
-</div>
-            <div style="margin-top: 20px; margin-bottom: 20px;">
-    @if(strtolower($ticket->status) == 'closed' || strtolower($ticket->status) == 'tertutup')
-        <a href="{{ route('incidents.export-pdf', ['id' => $ticket->id]) }}"
-           style="background-color: #2563eb; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold; font-family: sans-serif;">
-            📄 Ekspor PDF
-        </a>
-    @else
-        <button disabled 
-                style="background-color: #9ca3af; color: white; padding: 10px 15px; border: none; border-radius: 5px; font-weight: bold; font-family: sans-serif; cursor: not-allowed;"
-                title="Laporan hanya dapat diekspor setelah tiket insiden ditutup.">
-            🔒 Ekspor PDF (Terkunci)
-        </button>
-        <span style="color: #ef4444; font-size: 14px; margin-left: 10px;">
-            * Laporan hanya dapat diekspor setelah tiket insiden ditutup.
-        </span>
-    @endif
-</div>
-                <div class="two-col">
-                    <div>
-                        <div class="card">
-                            <div class="card-header">Informasi Tiket</div>
-                            <div class="card-body">
-                                <p style="font-size:14px; margin-bottom:12px; color: var(--color-text);">
-                                    <strong>Ruang Terdampak:</strong> {{ $ticket->conditionData->room->room_name ?? 'N/A' }}
-                                </p>
-                                <div style="display:flex; align-items:center; gap: 10px; margin-bottom:6px;">
-                                    <span style="font-size:13px; font-weight:500;">Status:</span>
-                                    <span class="status-badge badge-{{ $ticket->status }}">{{ str_replace('_',' ',$ticket->status) }}</span>
-                                </div>
-                                <p style="font-size:12px; color:var(--color-text-muted); margin-top: 10px;">
-                                    Dilaporkan: {{ $ticket->created_at->format('d M Y H:i') }}
-                                </p>
-                            </div>
-                        </div>
-                                                
+            {{-- Tombol Ekspor PDF: Hanya aktif jika status closed --}}
+            @if($ticket->status === 'closed')
+                <a href="{{ route('incidents.export-pdf', ['id' => $ticket->id]) }}"
+                   style="background-color: #2563eb; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold; font-family: sans-serif;">
+                    📄 Ekspor PDF
+                </a>
+            @else
+                <button disabled 
+                        style="background-color: #9ca3af; color: white; padding: 10px 15px; border: none; border-radius: 5px; font-weight: bold; font-family: sans-serif; cursor: not-allowed;"
+                        title="Laporan hanya dapat diekspor setelah tiket insiden ditutup.">
+                    🔒 Ekspor PDF (Terkunci)
+                </button>
+            @endif
+        </div>
 
-                        @if(strtolower($ticket->status) !== 'closed')
-                        <div class="card">
-                            <div class="card-header">Catat Tindakan Korektif</div>
-                            <div class="card-body">
-                                <label style="display:block; font-size:13px; font-weight:500; margin-bottom:8px;">Deskripsi Penanganan <span style="color:red">*</span></label>
-                                <textarea id="desc" class="form-control" rows="5" placeholder="Jelaskan tindakan perbaikan..."></textarea>
-                                <p id="err-msg" style="color:red; font-size:12px; display:none; margin-top:6px;">Deskripsi wajib diisi.</p>
-                                
-                                <button type="button" onclick="saveAction({{ $ticket->id }}, event)" id="btn-save" class="btn-submit" style="margin-top:14px;">
-                                    <span id="btn-text">Simpan Tindakan</span>
-                                    <div class="spinner" id="btn-spinner"></div>
-                                </button>
-                            </div>
-                        </div>
-                        @endif
+        <div class="two-col">
+            {{-- Bagian Kiri: Info Tiket & Form --}}
+            <div>
+                <div class="card">
+                    <div class="card-header">Informasi Tiket</div>
+                    <div class="card-body">
+                        <p><strong>Status:</strong> 
+                            <span class="status-badge badge-{{ $ticket->status }}">
+                                {{ str_replace('_', ' ', $ticket->status) }}
+                            </span>
+                        </p>
                     </div>
-                    
+                </div>
+
+                {{-- Form input catatan: Muncul jika belum closed --}}
+                @if($ticket->status !== 'closed')
                     <div class="card">
-                        <div class="card-header">Riwayat Tindakan (Audit Log)</div>
+                        <div class="card-header">Catat Tindakan Korektif</div>
+                        <div class="card-body">
+                            <textarea id="desc" class="form-control" rows="5" placeholder="Jelaskan tindakan perbaikan..."></textarea>
+                            <button type="button" onclick="saveAction({{ $ticket->id }})" id="btn-save" class="btn-submit" style="margin-top:14px;">
+                                <span id="btn-text">Simpan Tindakan</span>
+                                <div class="spinner" id="btn-spinner"></div>
+                            </button>
+                        </div>
+                    </div>
+                @endif
+            </div>
+            
+            {{-- Bagian Kanan: Riwayat --}}
+            <div class="card">
+                <div class="card-header">Riwayat Tindakan</div>
                         <div class="card-body">
                             @forelse($ticket->correctiveActions as $action)
                                 <div class="log-item">
@@ -254,55 +247,58 @@
     </div>
 
     <script>
-        async function saveAction(id) {
-            console.log("FUNCTION KEJALAN");
-            const descInput = document.getElementById('desc');
-            const err = document.getElementById('err-msg');
-            const btn = document.getElementById('btn-save');
-            const spinner = document.getElementById('btn-spinner');
-            const btnText = document.getElementById('btn-text');
-            
-            if(!descInput.value.trim()) {
-                err.style.display = 'block';
-                descInput.style.borderColor = 'red';
-                return;
-            }
-            
-            err.style.display = 'none';
-            descInput.style.borderColor = 'var(--color-border)';
-            btn.disabled = true;
-            btnText.innerText = 'Menyimpan...';
-            spinner.style.display = 'block';
-            
-            try {
-                const res = await fetch(`/api/incident-tickets/${id}/actions`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json', 
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') 
-                    },
-                    body: JSON.stringify({ description: descInput.value, incident_ticket_id: id })
-                });
-                
-                if(res.ok) {
-                    location.reload(); 
-                } else {
-                    const data = await res.json();
-                    alert(data.message || 'Gagal menyimpan tindakan.');
-                    resetBtn();
-                }
-            } catch(e) {
-                alert('Koneksi terputus. Coba lagi.');
-                resetBtn();
-            }
+        // Cari fungsi saveAction di bagian <script> incidents.blade.php
 
-            function resetBtn() {
-                btn.disabled = false;
-                btnText.innerText = 'Simpan Tindakan';
-                spinner.style.display = 'none';
-            }
+async function saveAction(id) {
+    const descInput = document.getElementById('desc');
+    const btn = document.getElementById('btn-save');
+    const btnText = document.getElementById('btn-text');
+    const spinner = document.getElementById('btn-spinner');
+
+    if (!descInput.value.trim()) {
+        alert('Deskripsi wajib diisi!');
+        return;
+    }
+
+    // Visual loading
+    btn.disabled = true;
+    btnText.innerText = 'Menyimpan...';
+    spinner.style.display = 'block';
+
+    try {
+        const response = await fetch(`/api/incident-tickets/${id}/actions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ 
+                description: descInput.value // Nama properti ini harus sama dengan di Controller/Route
+            })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            // Berhasil tersimpan
+            location.reload(); 
+        } else {
+            alert('Gagal: ' + (result.message || 'Terjadi kesalahan sistem'));
+            resetBtn();
         }
+    } catch (error) {
+        console.error(error);
+        alert('Gagal terhubung ke server.');
+        resetBtn();
+    }
+
+    function resetBtn() {
+        btn.disabled = false;
+        btnText.innerText = 'Simpan Tindakan';
+        spinner.style.display = 'none';
+    }
+}
 
         async function deleteTicket(id) {
             if(!confirm('Yakin ingin menghapus tiket ini?')) return;
