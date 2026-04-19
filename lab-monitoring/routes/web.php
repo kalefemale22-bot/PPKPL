@@ -16,6 +16,10 @@ Route::get('/monitoring', function () {
     return view('monitoring');
 });
 
+Route::get('/monitoring/affected-samples', function () {
+    return view('affected-samples');
+});
+
 Route::get('/monitoring/incidents/{id?}', function ($id = null) {
     if ($id) {
         $ticket = IncidentTicket::with(['correctiveActions.recorder', 'creator', 'conditionData.room'])

@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ConditionDataController;
 use App\Http\Controllers\StorageRoomController;
 use App\Http\Controllers\CorrectiveActionController;
+use App\Http\Controllers\AffectedSampleController;
+use App\Http\Controllers\TestSampleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,3 +37,12 @@ Route::get('/notifications', function () {
         'data' => \App\Models\Notification::latest()->get()
     ]);
 });
+
+// Endpoint untuk Test Samples (US 3.4)
+Route::get('/test-samples', [TestSampleController::class, 'index']);
+Route::post('/test-samples', [TestSampleController::class, 'store']);
+Route::put('/test-samples/{id}', [TestSampleController::class, 'update']);
+
+// Endpoint untuk Affected Samples (US 3.4)
+Route::get('/affected-samples', [AffectedSampleController::class, 'index']);
+Route::get('/affected-samples/{conditionDataId}', [AffectedSampleController::class, 'show']);
